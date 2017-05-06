@@ -19,55 +19,87 @@ Hint: Here's an array of the Twitch.tv usernames of people who regularly stream:
 */
 
 var twitchUsers = ['ESL_SC2', 'OgamingSC2', 'cretetion', 'freecodecamp', 'storbeck', 'habathcx', 'RobotCaleb', 'noobs2ninjas'];
+var urlUsers = '';
 var logo;
-var channelUrl = '';
-var url;
-var streamURL;
-var streamingLogo;
-// var streamUsers = [];
-// var info = [];
+var userUrl;
+var streamUsers = [];
+var info = [];
+var streamInfo = {};
+var streamLogo = "";
+var streamUserUrl = "";
+var offlineUrl;
+var streamName;
 
-// ONLINE users
-$('#onlineButton').click(function () {
-    $(".onlineUsers").html("");
-    userLogo();
-    });
+//create a url for api call
+function twitchUrl () {
+    for (var i = 0; i < twitchUsers.length - 1; i++) {
+        url = 'https://api.twitch.tv/kraken/streams?channel=';
+        urlUsers += twitchUsers[i] + ',';
+    };
+    urlUsers += twitchUsers[twitchUsers.length - 1] 
+    url = url + urlUsers + '&client_id=mchzgoktnyyz48wjhaloj16ov6li5v';
+    console.log(url);
+};
+
+twitchUrl();
 
 //get users who are streaming with their logos, urls, descriptions
-function userLogo() {
+function onlineChannels () {
+    $.getJSON(url, function(streamData){
+            for (var i =0; i < streamData.streams.length; i++) {
+            streamInfo = streamData.streams[i].channel.status;
+            streamUserUrl = streamData.streams[i].channel.url;
+            streamLogo = streamData.streams[i].channel.logo;
+            streamName = streamData.streams[i].channel.name;
+            // console.log(streamUserUrl);
+            // console.log(streamInfo);
+            $('.onlineUsers').append('<div class = "col-lg-3 col-md-3 col-sm-4 col-xs-6 logos"><a href="' + streamUserUrl + '"><img src="' + streamLogo + '"></a><ul><li>'+ streamName +'</li><li>'+ streamInfo +'</li></ul></div>');
+            };
+    }).fail(function() {
+        $('.onlineUsers').append('<h4>Sorry, we could not load TwitchTV Info!</h4>');
+    });
+        
+};
+
+//get users who are NOT streaming with their logos, urls, descriptions
+function offlineChannels() {
     $.each(twitchUsers, function (i, val) {
-        streamURL = ('https://api.twitch.tv/kraken/streams/' + val + '?client_id=mchzgoktnyyz48wjhaloj16ov6li5v');
-        $.getJSON(streamURL, function (streaming){
-            if (streaming.stream !== null) {
+        streamUrl = ('https://api.twitch.tv/kraken/streams/' + val + '?client_id=mchzgoktnyyz48wjhaloj16ov6li5v');
+        $.getJSON(streamUrl, function (streaming){
+            if (streaming.stream === null) {
                 var streamUsers = [];
                 var info = [];
                 streamUsers.push(val);
-                info = streaming.stream.channel.status;
-                url = ('https://api.twitch.tv/kraken/users/' + streamUsers + '?client_id=mchzgoktnyyz48wjhaloj16ov6li5v');
-                $.getJSON(url, function (result) {
+                userUrl = ('https://api.twitch.tv/kraken/users/' + val + '?client_id=mchzgoktnyyz48wjhaloj16ov6li5v');
+                $.getJSON(userUrl, function (result) {
                 logo = result.logo;
+                    offlineUrl = ("https://www.twitch.tv/" + val);
+                    console.log(offlineUrl);
                     if (result.logo !== null) {
-                    $('.onlineUsers').append('<div class = "logos"><a href="https://www.twitch.tv/' + val + '"><img src="' + logo + '"></a><p>'+ val +'</p><p>'+ info +'</p></div>');
+                    $('.onlineUsers').append('<div class = "col-lg-3 col-md-3 col-sm-4 col-xs-6 logos"><a href="' + offlineUrl + '"><img src="' + logo + '"></a><ul><li>'+ val +'</li><li>This channel is OFFLINE!</li></ul></div>');
             };
         }).fail(function() {
-                $('.onlineUsers').append('<h4>Sorry, we could not load TwitchTV users information!</h4>');
+                $('.onlineUsers').append('<h4>Sorry, we could not load TwitchTV User Logos!</h4>');
         });    
-            };  
-        }).fail(function() {
-                $('.onlineUsers').append('<h4>Sorry, we could not load TwitchTV users information!</h4>');
-        }); ;
+            };      
+}).fail(function() {
+                $('.onlineUsers').append('<h4>Sorry, we could not load TwitchTV channel information!</h4>');
+        }); 
     });
-}
+};
 
-//urls for each twitchTV users
-// function channel() {
-//     $.each(twitchUsers, function (i, name) {
-//         channelUrl = 'https://www.twitch.tv/' + name;
-//         console.log(channelUrl);
-//     });
-// };
+$(document).ready(function() {
+    onlineChannels();
+});
 
-$(document).ready(function(){
-    // streamOnline();
-    userLogo();
+// To Display ONLINE Users when clicked on ONLINE CHANNELS button
+$('#onlineButton').click(function () {
+    $(".onlineUsers").html("");
+    onlineChannels();
+});
+
+// To Display OFFLINE Users when clicked on OFFLINE CHANNELS button
+$('#offlineButton').click(function () {
+    $(".onlineUsers").html("");
+offlineChannels();
 });
