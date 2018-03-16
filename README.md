@@ -1,3 +1,3 @@
 # TwitchTvJSONAPI
 
-DEMO - https://codepen.io/iceveda/full/KmXOyq/
+DEMO - https://iceveda06.github.io/TwitchTvJSONAPI/
